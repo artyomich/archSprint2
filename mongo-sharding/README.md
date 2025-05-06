@@ -8,7 +8,7 @@
 docker compose up -d
 ```
 
-Заполняем mongodb данными
+Заполняем mongodb данными 1050 записей и проверяем сегментирование на шарды
 
 ```shell
 ./scripts/mongo-init.sh
@@ -33,3 +33,8 @@ curl --silent http://ifconfig.me
 ## Доступные эндпоинты
 
 Список доступных эндпоинтов, swagger http://<ip виртуальной машины>:8080/docs
+
+## Выполнить очистку контейнеров докера
+```shell
+docker-compose down -v
+```
