@@ -27,7 +27,7 @@ services:
       - "27017:27017"
     networks:
       app-network:
-        ipv4_address: 173.17.0.10
+        ipv4_address: 173.17.0.17
     volumes:
       - config-data:/data/db
     command:
@@ -39,8 +39,8 @@ services:
       ]
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
-      interval: 15s
-      start_period: 30s
+      interval: 10s
+      start_period: 20s
 
   shard1:
     image: mongo:latest
@@ -50,7 +50,7 @@ services:
       - "27018:27018"
     networks:
       app-network:
-        ipv4_address: 173.17.0.9
+        ipv4_address: 173.17.0.18
     volumes:
       - shard1-data:/data/db
     command:
@@ -63,8 +63,8 @@ services:
       ]
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
-      interval: 15s
-      start_period: 30s
+      interval: 10s
+      start_period: 20s
 
   shard2:
     image: mongo:latest
@@ -74,7 +74,7 @@ services:
       - "27019:27019"
     networks:
       app-network:
-        ipv4_address: 173.17.0.8
+        ipv4_address: 173.17.0.19
     volumes:
       - shard2-data:/data/db
     command:
@@ -87,8 +87,8 @@ services:
       ]
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
-      interval: 15s
-      start_period: 30s
+      interval: 10s
+      start_period: 20s
 
   mongos_router:
     image: mongo:latest
@@ -98,7 +98,7 @@ services:
       - "27020:27020"
     networks:
       app-network:
-        ipv4_address: 173.17.0.7
+        ipv4_address: 173.17.0.20
     command:
       [
         "mongos",
