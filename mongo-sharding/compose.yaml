@@ -20,7 +20,7 @@ services:
       MONGODB_DATABASE_NAME: "somedb"
 
   configSrv:
-    image: mongo:latest # docker образ
+    image: mongo:latest
     container_name: configSrv
     restart: always
     ports:
@@ -110,8 +110,8 @@ services:
       ]
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
-      interval: 15s
-      start_period: 30s
+      interval: 10s
+      start_period: 20s
 
 networks:
   app-network:
