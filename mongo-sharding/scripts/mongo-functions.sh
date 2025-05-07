@@ -20,41 +20,51 @@ EOF
 echo "configSrv initialized..."
 }
 
-initShards()
-{
+waitForMongoUp() {
+  local container=$1
+  local port=$2
+  local maxAttempts=30
+  local attempt=0
 
-echo "All shards initializing..."
+  echo "Ждем доступности $container:$port..."
+  while ! docker exec -T "$container" mongosh --port "$port" --eval "db.runCommand({ping:1})" >/dev/null 2>&1; do
+    attempt=$((attempt + 1))
+    if [ "$attempt" -ge "$maxAttempts" ]; then
+      echo "Ошибка: $container не доступен после $maxAttempts попыток"
+      exit 1
+    fi
+    sleep 2
+    echo "Попытка $attempt/$maxAttempts..."
+  done
+  echo "$container доступен!"
+}
 
-echo "try shard1..."
+initShards() {
+  waitForMongoUp "shard1" "27018"
+  waitForMongoUp "shard2" "27019"
 
-docker compose exec -T shard1 mongosh --port 27018 --quiet << EOF
-  rs.initiate(
-      {
-        _id : "shard1",
-        members: [
-          { _id : 0, host : "shard1:27018" }
-        ]
-      }
-  );
-  exit();
+  echo "Инициализация shard1..."
+  docker exec -T shard1 mongosh --port 27018 --quiet << EOF
+    rs.initiate({
+      _id: "shard1",
+      members: [{ _id: 0, host: "shard1:27018" }]
+    });
+    exit();
 EOF
+  echo "shard1 is initialized...."
 
-echo "shard1 is initialized...."
+  echo "try shard2..."
 
-echo "try shard2..."
-
-docker compose exec -T shard2 mongosh --port 27019 --quiet << EOF
-  rs.initiate(
-      {
-        _id : "shard2",
-        members: [
-          { _id : 1, host : "shard2:27019" }
-        ]
-      }
-  );
-  exit();
+  docker exec -T shard2 mongosh --port 27019 --quiet << EOF
+    rs.initiate(
+        {
+          _id : "shard2",
+          members: [{ _id : 1, host : "shard2:27019" }]
+        }
+    );
+    exit();
 EOF
-echo "shard2 is initialized..."
+  echo "shard2 is initialized..."
 }
 
 waitingForRouter()
@@ -73,7 +83,7 @@ waitingForRouter()
       exit 1
     fi
     sleep 1
-    echo "try $attempt/$max_attempts..."
+    echo "try $attempt/$maxAttempts..."
   done
 
   echo "mongos_router is started now..."
