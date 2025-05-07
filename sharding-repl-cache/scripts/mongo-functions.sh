@@ -71,7 +71,7 @@ waitingForRouter()
       exit 1
     fi
     sleep 1
-    echo "try $attempt/$max_attempts..."
+    echo "try $attempt/$maxAttempts..."
   done
 
   echo "mongos_router is started now..."
@@ -100,7 +100,7 @@ getDocsCount() {
   local shardName="$1"
   local shardPort="$2"
   echo "try shard "$shardName":"$shardPort"..."
-  docker compose exec -T "$shard_name" mongosh --port "$shard_port" --quiet <<EOF
+  docker compose exec -T "$shardName" mongosh --port "$shardPort" --quiet <<EOF
     use somedb;
     db.helloDoc.countDocuments();
 EOF

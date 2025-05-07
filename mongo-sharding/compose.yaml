@@ -12,27 +12,26 @@ services:
       - shard2
       - mongos_router
     ports:
-      - "8080:8080"
+      - 8080:8080
     networks:
       - app-network
     environment:
-      MONGODB_URL: "mongodb://mongos_router:27020/?connectTimeoutMS=20000&socketTimeoutMS=20000"
+      MONGODB_URL: "mongodb://mongos_router:27020/?connectTimeoutMS=30000&socketTimeoutMS=30000"
       MONGODB_DATABASE_NAME: "somedb"
 
   configSrv:
-    image: mongo:latest
+    image: mongo:latest # docker образ
     container_name: configSrv
     restart: always
     ports:
       - "27017:27017"
     networks:
       app-network:
-        ipv4_address: 173.17.0.17
+        ipv4_address: 173.17.0.10
     volumes:
       - config-data:/data/db
     command:
       [
-        "mongod",
         "--configsvr",
         "--replSet", "config_server",
         "--bind_ip_all",
@@ -40,8 +39,8 @@ services:
       ]
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
-      interval: 10s
-      start_period: 20s
+      interval: 15s
+      start_period: 30s
 
   shard1:
     image: mongo:latest
@@ -51,21 +50,21 @@ services:
       - "27018:27018"
     networks:
       app-network:
-        ipv4_address: 173.17.0.18
+        ipv4_address: 173.17.0.9
     volumes:
       - shard1-data:/data/db
     command:
       [
-        "mongod",
         "--shardsvr",
         "--replSet", "shard1",
         "--bind_ip_all",
-        "--port", "27018"
+        "--port",
+        "27018"
       ]
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
-      interval: 10s
-      start_period: 20s
+      interval: 15s
+      start_period: 30s
 
   shard2:
     image: mongo:latest
@@ -75,21 +74,21 @@ services:
       - "27019:27019"
     networks:
       app-network:
-        ipv4_address: 173.17.0.19
+        ipv4_address: 173.17.0.8
     volumes:
       - shard2-data:/data/db
     command:
       [
-        "mongod",
         "--shardsvr",
         "--replSet", "shard2",
         "--bind_ip_all",
-        "--port", "27019"
+        "--port",
+        "27019"
       ]
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
-      interval: 10s
-      start_period: 20s
+      interval: 15s
+      start_period: 30s
 
   mongos_router:
     image: mongo:latest
@@ -99,7 +98,7 @@ services:
       - "27020:27020"
     networks:
       app-network:
-        ipv4_address: 173.17.0.20
+        ipv4_address: 173.17.0.7
     command:
       [
         "mongos",
@@ -111,8 +110,9 @@ services:
       ]
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
-      interval: 10s
+      interval: 15s
       start_period: 30s
+
 networks:
   app-network:
     driver: bridge

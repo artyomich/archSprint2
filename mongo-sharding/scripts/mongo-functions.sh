@@ -20,31 +20,9 @@ EOF
 echo "configSrv initialized..."
 }
 
-waitForMongoUp() {
-  local container=$1
-  local port=$2
-  local maxAttempts=30
-  local attempt=0
-
-  echo "Ждем доступности $container:$port..."
-  while ! docker exec -T "$container" mongosh --port "$port" --eval "db.runCommand({ping:1})" >/dev/null 2>&1; do
-    attempt=$((attempt + 1))
-    if [ "$attempt" -ge "$maxAttempts" ]; then
-      echo "Ошибка: $container не доступен после $maxAttempts попыток"
-      exit 1
-    fi
-    sleep 2
-    echo "Попытка $attempt/$maxAttempts..."
-  done
-  echo "$container доступен!"
-}
-
 initShards() {
-  waitForMongoUp "shard1" "27018"
-  waitForMongoUp "shard2" "27019"
-
   echo "Инициализация shard1..."
-  docker exec -T shard1 mongosh --port 27018 --quiet << EOF
+  docker compose exec -T shard1 mongosh --port 27018 --quiet << EOF
     rs.initiate({
       _id: "shard1",
       members: [{ _id: 0, host: "shard1:27018" }]
@@ -55,7 +33,7 @@ EOF
 
   echo "try shard2..."
 
-  docker exec -T shard2 mongosh --port 27019 --quiet << EOF
+  docker compose exec -T shard2 mongosh --port 27019 --quiet << EOF
     rs.initiate(
         {
           _id : "shard2",
@@ -112,7 +90,7 @@ getDocsCount() {
   local shardName="$1"
   local shardPort="$2"
   echo "try shard "$shardName":"$shardPort"..."
-  docker compose exec -T "$shard_name" mongosh --port "$shard_port" --quiet <<EOF
+  docker compose exec -T "$shardName" mongosh --port "$shardPort" --quiet <<EOF
     use somedb;
     db.helloDoc.countDocuments();
 EOF
